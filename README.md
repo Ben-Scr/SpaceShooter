@@ -1,4 +1,4 @@
-# SpaceShooter
+# Space Shooter
 2d unity space shooter game
 
 ## Ganeplay Screenshots
