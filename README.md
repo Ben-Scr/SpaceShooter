@@ -1,5 +1,5 @@
 # Space Shooter
-2d Unity Space Shooter Game
+2D Unity Space Shooter — early prototype (2 hours of development time).
 
 ## Gameplay Screenshots
 <p align="center">
@@ -9,3 +9,6 @@
   <img src="Docs/Screenshot4.png" width="45%" alt="Gameplay Screenshot 4">
 </p>
 
+## Controls
+- Avoid the asteroids that are moving toward you and shoot them down.
+- **Space** — Shoot a laser.
