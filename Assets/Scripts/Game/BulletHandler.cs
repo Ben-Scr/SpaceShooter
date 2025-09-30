@@ -16,9 +16,9 @@ public class BulletHandler : MonoBehaviour
         Instance = this;
     }
 
-    public static void SpawnBullet(Vector2 at, float rotationZ)
+    public static void SpawnBullet(Vector2 at, Quaternion rotation)
     {
-        Transform tr = Instance.objectPool.Get(Instance.bulletPrefab, at, Quaternion.Euler(0, 0, rotationZ)).transform;
+        Transform tr = Instance.objectPool.Get(Instance.bulletPrefab, at, rotation).transform;
         Instance.bullets.Add(tr);
     }
 
@@ -35,7 +35,7 @@ public class BulletHandler : MonoBehaviour
         {
             transform.Translate(transform.up * Time.deltaTime * bulletSpeed, Space.World);
 
-            if (transform.position.y > 10)
+            if (Vector2.Distance(transform.position, PlayerController.Position) > 12)
             {
                 destroyedBullets.Add(transform);
             }

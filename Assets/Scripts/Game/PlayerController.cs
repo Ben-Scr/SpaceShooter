@@ -7,12 +7,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float movementSpeed = 5;
     [SerializeField] private float asteriodCollisionThreshold = 0.5f;
     [SerializeField] private ParticleSystem emissionEffect;
-
+    [SerializeField] private float lookAtSpeed = 14;
+    [SerializeField] private bool spray;
     [SerializeField] private GameObject explosion;
-
-    private bool isDead = false;
-
     public static Action OnPlayerDeath;
+
+    public static Vector2 Position;
 
     void Update()
     {
@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour
 
         Movement();
 
-        if (IsCollidingWithAsteriod()) // Death / Collision detection
+        if (AsteriodSpawner.IsCollidingWithAsteriod(asteriodCollisionThreshold, transform.position)) // Death / Collision detection
         {
             OnDeath();
         }
@@ -28,41 +28,46 @@ public class PlayerController : MonoBehaviour
 
     private void Movement()
     {
-        float inputX = Input.GetAxis("Horizontal") * Time.deltaTime * movementSpeed;
-        float positionX = inputX + transform.position.x;
-        transform.position = new Vector3(Mathf.Clamp(positionX, minMaxPosX.min, minMaxPosX.max), transform.position.y);
+        Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+        if(Vector2.Distance(transform.position, mousePosition) > 0.3f)
+        {
+            UnityUtility.LookAt2D(transform, mousePosition, lookAtSpeed);
+        }
+
+
+
+        float input = 1 * Time.deltaTime * movementSpeed;
+
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            input *= 2;
+        }
+
+        transform.Translate(transform.up * input, Space.World);
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
             Shoot();
         }
+        if (Input.GetKey(KeyCode.Space) && spray)
+        {
+            Shoot();
+        }
+
+        Position = transform.position;
     }
 
     private void OnDeath()
     {
         GameObject obj = Instantiate(explosion, transform.position, Quaternion.identity);
         Destroy(obj, 2);
-        isDead = true;
         OnPlayerDeath?.Invoke();
         emissionEffect.Stop();
     }
 
     private void Shoot()
     {
-        BulletHandler.SpawnBullet((Vector2)transform.position, 0);
-    }
-
-    private bool IsCollidingWithAsteriod()
-    {
-        foreach (var asteriod in AsteriodSpawner.Asteriods)
-        {
-            float distance = Vector2.Distance(asteriod.Transform.position, transform.position) - (asteriod.Transform.localScale.x / 2f);
-
-            if (distance < asteriodCollisionThreshold)
-            {
-                return true;
-            }
-        }
-        return false;
+        BulletHandler.SpawnBullet((Vector2)transform.position, transform.rotation);
     }
 }

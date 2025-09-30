@@ -10,6 +10,7 @@ public class AsteriodSpawner : MonoBehaviour
     [SerializeField] private Range rotationSpeed;
     [SerializeField] private Range movementSpeed;
     [SerializeField] private Range scaleRange;
+    [SerializeField] private Range lookspeed;
 
     [SerializeField] private Range spawnPosX;
     [SerializeField] private float spawnInterval = 0.5f;
@@ -39,7 +40,7 @@ public class AsteriodSpawner : MonoBehaviour
         {
             spawnCounter = 0;
             Vector2 spawnPosition = new Vector2(Random.Range(spawnPosX.min, spawnPosX.max), transform.position.y);
-            Vector2 moveDirection = new Vector2(Random.Range(-0.5f, 0.5f), -1).normalized;
+            Vector2 moveDirection = (PlayerController.Position - spawnPosition).normalized;
             SpawnAsteriod(spawnPosition, moveDirection);
         }
 
@@ -52,10 +53,10 @@ public class AsteriodSpawner : MonoBehaviour
 
         foreach (var asteriod in Asteriods)
         {
-            asteriod.Transform.Rotate(0, 0, asteriod.RotationSpeed * Time.deltaTime);
-            asteriod.Transform.Translate(asteriod.MoveDirection * Time.deltaTime * asteriod.MovementSpeed, Space.World);
+            UnityUtility.LookAt2D(asteriod.Transform, (Vector3)PlayerController.Position, asteriod.LookSpeed);
+            asteriod.Transform.Translate(asteriod.Transform.up * Time.deltaTime * asteriod.MovementSpeed, Space.World);
 
-            if (asteriod.Transform.position.y < -10)
+            if(IsCollidingWithAsteriod(asteriod.Transform.localScale.x / 2f, asteriod.Transform.position))
             {
                 destroyedAsteriods.Add(asteriod);
             }
@@ -63,10 +64,26 @@ public class AsteriodSpawner : MonoBehaviour
 
         foreach (var asteriod in destroyedAsteriods)
         {
-            DestroyAsteriod(asteriod, false);
+            DestroyAsteriod(asteriod, true);
         }
 
         destroyedAsteriods.Clear();
+    }
+
+    public static bool IsCollidingWithAsteriod(float distanceThreshold, Vector3 at)
+    {
+        foreach (var asteriod in AsteriodSpawner.Asteriods)
+        {
+            if (asteriod.Transform.position == at) continue;
+
+            float distance = Vector2.Distance(asteriod.Transform.position, at) - (asteriod.Transform.localScale.x / 2f);
+
+            if (distance < distanceThreshold)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void DestroyAsteriod(PersistentAsteriod asteriod, bool fromLaser = true)
@@ -86,26 +103,24 @@ public class AsteriodSpawner : MonoBehaviour
         Transform tr = objectPool.Get(asteriodPrefab, at, Quaternion.Euler(0, 0, 0)).transform;
         tr.localScale = Vector3.one * Random.Range(scaleRange.min, scaleRange.max);
 
-        float rotationSpeedValue = Random.Range(rotationSpeed.min, rotationSpeed.max);
         float movementSpeedValue = Random.Range(movementSpeed.min, movementSpeed.max);
-        Asteriods.Add(new PersistentAsteriod(tr, moveDirection, rotationSpeedValue, movementSpeedValue));
+        float lookSpeedValue = Random.Range(lookspeed.min, lookspeed.max);
+        Asteriods.Add(new PersistentAsteriod(tr, movementSpeedValue, lookSpeedValue));
     }
 }
 
 public class PersistentAsteriod
 {
     public Transform Transform;
-    public float RotationSpeed;
     public float MovementSpeed;
-    public Vector2 MoveDirection;
     public int Health = 1;
+    public float LookSpeed;
 
-    public PersistentAsteriod(Transform transform, Vector2 moveDirection, float rotationSpeed, float movementSpeed)
+    public PersistentAsteriod(Transform transform, float movementSpeed, float lookSpeed)
     {
-        MoveDirection = moveDirection;
         Transform = transform;
-        RotationSpeed = rotationSpeed;
         MovementSpeed = movementSpeed;
+        LookSpeed = lookSpeed;
     }
 
     public void OnHit()
