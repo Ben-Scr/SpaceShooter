@@ -1,7 +1,7 @@
 # Space Shooter
 2d Unity Space Shooter Game
 
-## Ganeplay Screenshots
+## Gameplay Screenshots
 <p align="center">
   <img src="Docs/Screenshot1.png" width="45%" alt="Gameplay Screenshot 1">
   <img src="Docs/Screenshot2.png" width="45%" alt="Gameplay Screenshot 2">
