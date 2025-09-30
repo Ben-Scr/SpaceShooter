@@ -5,11 +5,12 @@ public class CameraController : MonoBehaviour
 {
     public enum CamMode { None, Follow, Manual }
 
+    [Header("General")]
     [SerializeField] private CamMode camMode;
 
     [Space(5)]
     [Header("Follow Properties")]
-    public Transform followTarget;
+    [SerializeField] private Transform followTarget;
     [SerializeField] private float smoothTime;
     [SerializeField] private float followOrthoSize = 11;
     [SerializeField] private float followOrthoSizeLerpSpeed = 0.1f;
@@ -17,20 +18,19 @@ public class CameraController : MonoBehaviour
 
     [Space(5)]
     [Header("Manual Properties")]
-
     [SerializeField] private float controlSpeed;
     [SerializeField] private float zoomSpeed;
+    [SerializeField] private Range zoomRange;
 
     private float lastManualOrthoSize;
     private Vector3 lastManualPosition;
-
-    internal static Camera cam;
-
     private Vector2 startMousePos;
+
+    private Camera camera;
 
     private void Awake()
     {
-        cam = Camera.main;
+        camera = Camera.main;
         startMousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         lastManualOrthoSize = followOrthoSize;
     }
@@ -42,13 +42,8 @@ public class CameraController : MonoBehaviour
             camMode = camMode == CamMode.Follow ? CamMode.Manual : CamMode.Follow;
             if (camMode == CamMode.Manual)
             {
-                cam.orthographicSize = lastManualOrthoSize;
+                camera.orthographicSize = lastManualOrthoSize;
                 transform.position = lastManualPosition == Vector3.zero ? transform.position : lastManualPosition;
-                //GameController.Freeze(FreezeReason.ManualCamera);
-            }
-            else
-            {
-              //  GameController.Unfreeze(FreezeReason.ManualCamera);
             }
         }
 
@@ -61,8 +56,6 @@ public class CameraController : MonoBehaviour
 
     private void LateUpdate()
     {
-    //    if (GameController.IsFrozen) return;
-
         if (camMode == CamMode.None)
             return;
 
@@ -78,7 +71,7 @@ public class CameraController : MonoBehaviour
             transform.position.z
         );
 
-        // KEIN fixedDeltaTime hier multiplizieren!
+
         transform.position = Vector3.SmoothDamp(
             transform.position,
             targetPos,
@@ -86,7 +79,7 @@ public class CameraController : MonoBehaviour
             smoothTime
         );
 
-        cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, followOrthoSize, Time.deltaTime * followOrthoSizeLerpSpeed);
+        camera.orthographicSize = Mathf.Lerp(camera.orthographicSize, followOrthoSize, Time.deltaTime * followOrthoSizeLerpSpeed);
     }
 
     private void ManualMode()
@@ -101,8 +94,9 @@ public class CameraController : MonoBehaviour
             transform.position += (Vector3)(startMousePos - mousePos) * Time.deltaTime * 50 * controlSpeed;
         }
 
-        cam.orthographicSize -= Input.GetAxis("Mouse ScrollWheel") * Time.deltaTime * 100 * zoomSpeed;
-        lastManualOrthoSize = cam.orthographicSize;
+        float targetOrthoSize = camera.orthographicSize - (Input.GetAxis("Mouse ScrollWheel") * Time.deltaTime * 100 * zoomSpeed);
+        camera.orthographicSize = Mathf.Clamp(targetOrthoSize, zoomRange.Min, zoomRange.Max);
+        lastManualOrthoSize = camera.orthographicSize;
         lastManualPosition = transform.position;
     }
 }

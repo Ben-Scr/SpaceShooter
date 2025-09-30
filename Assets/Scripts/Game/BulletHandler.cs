@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-// Handles bullet behavior in the game for better performance
+// Handles all bullet behavior in the game for better performance
 public class BulletHandler : MonoBehaviour
 {
     private DynamicObjectPool objectPool = new DynamicObjectPool();

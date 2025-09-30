@@ -7,7 +7,6 @@ public class AsteriodSpawner : MonoBehaviour
     public static List<PersistentAsteriod> Asteriods = new List<PersistentAsteriod>();
     [SerializeField] private GameObject asteriodPrefab;
 
-    [SerializeField] private Range rotationSpeed;
     [SerializeField] private Range movementSpeed;
     [SerializeField] private Range scaleRange;
     [SerializeField] private Range lookspeed;
@@ -39,7 +38,7 @@ public class AsteriodSpawner : MonoBehaviour
         if (spawnCounter >= spawnInterval)
         {
             spawnCounter = 0;
-            Vector2 spawnPosition = new Vector2(Random.Range(spawnPosX.min, spawnPosX.max), transform.position.y);
+            Vector2 spawnPosition = new Vector2(Random.Range(spawnPosX.Min, spawnPosX.Max), transform.position.y);
             Vector2 moveDirection = (PlayerController.Position - spawnPosition).normalized;
             SpawnAsteriod(spawnPosition, moveDirection);
         }
@@ -101,10 +100,10 @@ public class AsteriodSpawner : MonoBehaviour
     private void SpawnAsteriod(Vector2 at, Vector2 moveDirection)
     {
         Transform tr = objectPool.Get(asteriodPrefab, at, Quaternion.Euler(0, 0, 0)).transform;
-        tr.localScale = Vector3.one * Random.Range(scaleRange.min, scaleRange.max);
+        tr.localScale = Vector3.one * Random.Range(scaleRange.Min, scaleRange.Max);
 
-        float movementSpeedValue = Random.Range(movementSpeed.min, movementSpeed.max);
-        float lookSpeedValue = Random.Range(lookspeed.min, lookspeed.max);
+        float movementSpeedValue = Random.Range(movementSpeed.Min, movementSpeed.Max);
+        float lookSpeedValue = Random.Range(lookspeed.Min, lookspeed.Max);
         Asteriods.Add(new PersistentAsteriod(tr, movementSpeedValue, lookSpeedValue));
     }
 }

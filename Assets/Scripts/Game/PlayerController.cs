@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private Range minMaxPosX;
     [SerializeField] private float movementSpeed = 5;
     [SerializeField] private float asteriodCollisionThreshold = 0.5f;
     [SerializeField] private ParticleSystem emissionEffect;
@@ -20,7 +19,8 @@ public class PlayerController : MonoBehaviour
 
         Movement();
 
-        if (AsteriodSpawner.IsCollidingWithAsteriod(asteriodCollisionThreshold, transform.position)) // Death / Collision detection
+        // Death detection
+        if (AsteriodSpawner.IsCollidingWithAsteriod(asteriodCollisionThreshold, transform.position)) 
         {
             OnDeath();
         }
@@ -35,22 +35,13 @@ public class PlayerController : MonoBehaviour
             UnityUtility.LookAt2D(transform, mousePosition, lookAtSpeed);
         }
 
-
-
         float input = 1 * Time.deltaTime * movementSpeed;
 
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-            input *= 2;
-        }
+        if (Input.GetKey(KeyCode.LeftShift)) input *= 2;
 
         transform.Translate(transform.up * input, Space.World);
 
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Shoot();
-        }
-        if (Input.GetKey(KeyCode.Space) && spray)
+        if (Input.GetKeyDown(KeyCode.Space) || (Input.GetKey(KeyCode.Space) && spray))
         {
             Shoot();
         }
@@ -58,16 +49,17 @@ public class PlayerController : MonoBehaviour
         Position = transform.position;
     }
 
+    private void Shoot()
+    {
+        BulletHandler.SpawnBullet((Vector2)transform.position, transform.rotation);
+    }
+
     private void OnDeath()
     {
         GameObject obj = Instantiate(explosion, transform.position, Quaternion.identity);
         Destroy(obj, 2);
-        OnPlayerDeath?.Invoke();
         emissionEffect.Stop();
-    }
 
-    private void Shoot()
-    {
-        BulletHandler.SpawnBullet((Vector2)transform.position, transform.rotation);
+        OnPlayerDeath?.Invoke();
     }
 }

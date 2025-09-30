@@ -5,18 +5,20 @@ public class GameController : MonoBehaviour
 {
     public static bool IsGameOver = false;
     [SerializeField] private ParticleSystem backgroundEffect;
-    private Vector2 bgEffetectOffset;
     [SerializeField] private int targetFrameRate = 60;
+
+    private Vector2 bgEffetectOffset;
 
     private void Awake()
     {
         IsGameOver = false;
         bgEffetectOffset = backgroundEffect.transform.position;
+
         Application.targetFrameRate = targetFrameRate;
     }
     private void Update()
     {
-        backgroundEffect.transform.position = (Vector2)PlayerController.Position + bgEffetectOffset;
+        backgroundEffect.transform.position = PlayerController.Position + bgEffetectOffset;
     }
 
     private void OnEnable()
