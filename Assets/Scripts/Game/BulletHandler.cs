@@ -5,21 +5,21 @@ using System.Collections.Generic;
 public class BulletHandler : MonoBehaviour
 {
     private DynamicObjectPool objectPool = new DynamicObjectPool();
-    private List<Transform> bullets = new List<Transform>();
+    private List<PersistentBullet> persistentBullets = new List<PersistentBullet>();
     public static BulletHandler Instance;
 
-    [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private float bulletSpeed = 10f;
+    [SerializeField] private float distanceForDeath = 25;
 
     public void Awake()
     {
         Instance = this;
     }
 
-    public static void SpawnBullet(Vector2 at, Quaternion rotation)
+    public static void SpawnBullet(Bullet bullet, Vector2 at, Quaternion rotation)
     {
-        Transform tr = Instance.objectPool.Get(Instance.bulletPrefab, at, rotation).transform;
-        Instance.bullets.Add(tr);
+        Transform tr = Instance.objectPool.Get(bullet.GameObject, at, rotation).transform;
+        Instance.persistentBullets.Add(new PersistentBullet(bullet, tr));
     }
 
     public void Update()
@@ -29,51 +29,94 @@ public class BulletHandler : MonoBehaviour
 
     public void MoveBullets()
     {
-        List<Transform> destroyedBullets = new List<Transform>();
+        List<PersistentBullet> bulletsToDestroy = new List<PersistentBullet>();
 
-        foreach (var transform in bullets)
+        foreach (var persistentBullet in persistentBullets)
         {
-            transform.Translate(transform.up * Time.deltaTime * bulletSpeed, Space.World);
-
-            if (Vector2.Distance(transform.position, PlayerController.Position) > 12)
+            if (persistentBullet.Bullet.IsHauning)
             {
-                destroyedBullets.Add(transform);
+                if (persistentBullet.HasTarget())
+                {
+                    UnityUtility.LookAt2D(persistentBullet.Transform, persistentBullet.Target.position, persistentBullet.Bullet.RotationSpeed);
+                }
+                else
+                {
+                    persistentBullet.TryFindTarget();
+                }
             }
 
-            PersistentAsteriod collidedAsteriod = CollidesWith(transform);
+            persistentBullet.Transform.Translate(persistentBullet.Transform.up * Time.deltaTime * persistentBullet.Bullet.Speed, Space.World);
 
-            if(collidedAsteriod != null)
+            if (Vector2.Distance(persistentBullet.Transform.position, PlayerController.Position) > distanceForDeath)
             {
-                destroyedBullets.Add(transform);
+                bulletsToDestroy.Add(persistentBullet);
+            }
+
+            PersistentAsteriod collidedAsteriod = CollidesWith(persistentBullet.Transform);
+
+            if (collidedAsteriod != null)
+            {
+                bulletsToDestroy.Add(persistentBullet);
                 collidedAsteriod.OnHit();
             }
         }
 
-        foreach (var bullet in destroyedBullets)
+        foreach (var persistentBullet in bulletsToDestroy)
         {
-            DestroyBullet(bullet);
+            DestroyBullet(persistentBullet);
         }
 
-        destroyedBullets.Clear();
+        bulletsToDestroy.Clear();
     }
 
     private PersistentAsteriod CollidesWith(Transform bulletTr)
     {
-        foreach(var asteriod in AsteriodSpawner.Asteriods)
-        {
-            float distance = Vector2.Distance(asteriod.Transform.position, bulletTr.position);
-            if (distance - (asteriod.Transform.localScale.x / 2f) <  0)
-            {
-                return asteriod;
-            }
-        }
-
-        return null;
+        AsteriodsHandler.IsCollidingWithAsteriod(bulletTr.localScale.x / 2f, bulletTr.position, out PersistentAsteriod persistentAsteriod);
+        return persistentAsteriod;
     }
 
-    private void DestroyBullet(Transform bullet)
+    private void DestroyBullet(PersistentBullet persistentBullet)
     {
-        objectPool.Release(bulletPrefab, bullet.gameObject);
-        bullets.Remove(bullet);
+        objectPool.Release(persistentBullet.Bullet.GameObject, persistentBullet.Transform.gameObject);
+        persistentBullets.Remove(persistentBullet);
+    }
+}
+
+public class PersistentBullet
+{
+    public Transform Transform;
+    public Bullet Bullet;
+    public Transform Target;
+
+    public PersistentBullet(Bullet bullet, Transform transform)
+    {
+        Transform = transform;
+        Bullet = bullet;
+
+        if (bullet.IsHauning)
+        {
+            TryFindTarget();
+        }
+    }
+
+    public void TryFindTarget()
+    {
+        float minDistance = float.MaxValue;
+
+        foreach (var persistentAsteriod in AsteriodsHandler.PersistentAsteriods)
+        {
+            float dst = Vector2.Distance(Transform.position, persistentAsteriod.Transform.position);
+
+            if (dst < minDistance)
+            {
+                minDistance = dst;
+                Target = persistentAsteriod.Transform;
+            }
+        }
+    }
+
+    public bool HasTarget()
+    {
+        return Target?.gameObject.activeInHierarchy ?? false;
     }
 }
