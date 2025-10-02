@@ -97,7 +97,7 @@ namespace SpaceShooter
         private AsteriodInstance CollidesWith(Transform bulletTr, float overrideThreshold = -1)
         {
             float distanceThreshold = (overrideThreshold != -1) ? overrideThreshold : (bulletTr.localScale.x / 2f);
-            AsteriodsHandler.IsCollidingWithAsteriod(overrideThreshold, bulletTr.position, out AsteriodInstance persistentAsteriod);
+            AsteriodsHandler.IsCollidingWithAsteriod(distanceThreshold, bulletTr.position, out AsteriodInstance persistentAsteriod);
             return persistentAsteriod;
         }
 

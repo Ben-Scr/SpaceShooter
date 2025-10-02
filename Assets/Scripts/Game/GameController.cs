@@ -1,33 +1,44 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace SpaceShooter
 {
     public class GameController : MonoBehaviour
     {
-        public static bool IsGameOver = false;
         [SerializeField] private ParticleSystem backgroundEffect;
-        [SerializeField] private int targetFrameRate = 60;
+
+        [Space(5)]
+        [Header("UI")]
         [SerializeField] private TextMeshProUGUI nextWaveTxt;
         [SerializeField] private TextMeshProUGUI curScoreTxt;
         [SerializeField] private Animator backgroundAnimator;
+        [SerializeField] private HorizontalLayoutGroup UtilLayoutGroup;
 
-        private Vector2 bgEffetectOffset;
+        public static bool IsGameOver = false;
 
-
+        private Vector2 bgEffectOffset;
         private int curScore;
 
         private void Awake()
         {
-            IsGameOver = false;
-            bgEffetectOffset = backgroundEffect.transform.position;
+            LoadSceneManager.CheckForPersistentScene();
 
-            Application.targetFrameRate = targetFrameRate;
+            IsGameOver = false;
+            bgEffectOffset = backgroundEffect.transform.position;
+            StartCoroutine(UpdateLayout());
         }
+
+        private IEnumerator UpdateLayout() // Force layout update
+        {
+            yield return null;
+            UtilLayoutGroup.spacing += 1;
+        }
+
         private void Update()
         {
-            backgroundEffect.transform.position = PlayerController.Position + bgEffetectOffset;
+            backgroundEffect.transform.position = PlayerController.Position + bgEffectOffset;
         }
 
         private void OnEnable()
@@ -67,6 +78,7 @@ namespace SpaceShooter
         private void OnPlayerDeath()
         {
             IsGameOver = true;
+
             CameraController.Instance.camMode = CameraController.CamMode.Follow;
             CameraController.Instance.followOrthoSize = 5;
         }

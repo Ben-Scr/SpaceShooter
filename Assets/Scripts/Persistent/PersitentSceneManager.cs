@@ -6,14 +6,17 @@ namespace SpaceShooter
 {
     public class LoadSceneManager : MonoBehaviour
     {
-        public const string PERSISTENT_SCENE = "PersistentScebe";
+        public const string PERSISTENT_SCENE = "PersistentScene";
         public const string MENU_SCENE = "MenuScene";
         public const string GAME_SCENE = "GameScene";
+
+        [SerializeField] private string startScene = MENU_SCENE;
+
         private void Start()
         {
-            if (!SceneLoaded(MENU_SCENE))
+            if (!SceneLoaded(startScene))
             {
-                LoadSceneAsyncAdditive(MENU_SCENE);
+                LoadSceneAsyncAdditive(startScene);
             }
         }
 
