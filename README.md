@@ -11,7 +11,7 @@
 - Avoid the asteroids that are flying toward you and shoot them down.
 - **Space** - Shoot a laser which haunts the asteriods.
 - **Q** - Deploys a bomb.
-- **E** - Shoots a circle of lasers around your ship.
+- **E** - Shoots a circle of lasers around the ship.
 
 ## Roughly planned for the future
 - In-game currency
