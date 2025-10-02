@@ -6,13 +6,13 @@ public class CameraController : MonoBehaviour
     public enum CamMode { None, Follow, Manual }
 
     [Header("General")]
-    [SerializeField] private CamMode camMode;
+    public CamMode camMode;
 
     [Space(5)]
     [Header("Follow Properties")]
     [SerializeField] private Transform followTarget;
     [SerializeField] private float smoothTime;
-    [SerializeField] private float followOrthoSize = 11;
+    public float followOrthoSize = 11;
     [SerializeField] private float followOrthoSizeLerpSpeed = 0.1f;
     private Vector3 velocity;
 
@@ -27,9 +27,11 @@ public class CameraController : MonoBehaviour
     private Vector2 startMousePos;
 
     private Camera camera;
+    public static CameraController Instance;
 
     private void Awake()
     {
+        Instance = this;
         camera = Camera.main;
         startMousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         lastManualOrthoSize = followOrthoSize;

@@ -66,7 +66,8 @@ public class GameController : MonoBehaviour
 
     private void OnPlayerDeath()
     {
-        backgroundEffect.Pause();
         IsGameOver = true;
+        CameraController.Instance.camMode = CameraController.CamMode.Follow;
+        CameraController.Instance.followOrthoSize = 5;
     }
 }

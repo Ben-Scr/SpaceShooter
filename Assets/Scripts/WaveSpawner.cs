@@ -95,8 +95,6 @@ public class WaveSpawner : MonoBehaviour
         if(AsteriodsHandler.PersistentAsteriods.Count == 0 && asteriodsToSpawn.Count == 0)
         {
             NextWave();
-            waveSlider.maxValue = asteriodsToSpawn.Count;
-            waveSlider.value = waveSlider.maxValue;
             OnNextWave?.Invoke(currentWave);
         }
     }
@@ -113,6 +111,8 @@ public class WaveSpawner : MonoBehaviour
     {
         yield return new WaitForSeconds(wavePauseTime);
         isSpawning = true;
+        waveSlider.maxValue = asteriodsToSpawn.Count;
+        waveSlider.value = waveSlider.maxValue;
     }
 
     public void GenerateWave()
