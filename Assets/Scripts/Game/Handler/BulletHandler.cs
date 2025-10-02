@@ -72,7 +72,7 @@ namespace SpaceShooter
             }
         }
 
-        // Detects weather a bullet can be destroyed
+        // Detects wether a bullet can be destroyed
         private void DestroyDetection(BulletInstance bulletInstance)
         {
             bool outOfRange = Vector2.Distance(bulletInstance.Transform.position, Camera.main?.transform.position ?? Vector2.zero) > distanceForDestruction;
