@@ -2,103 +2,106 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 
-public class AsteriodsHandler : MonoBehaviour
+namespace SpaceShooter
 {
-    private DynamicObjectPool objectPool = new DynamicObjectPool();
-    public static List<PersistentAsteriod> PersistentAsteriods = new List<PersistentAsteriod>();
-
-    public static AsteriodsHandler Instance;
-    [SerializeField] private GameObject asteriodExplosion;
-
-    public static Action<Asteriod> OnDestroyAsteriod;
-
-    private void Awake()
+    public class AsteriodsHandler : MonoBehaviour
     {
-        Instance = this;
-        PersistentAsteriods = new List<PersistentAsteriod>();
-    }
+        [SerializeField] private GameObject asteriodExplosion;
 
-    void Update()
-    {
-        if (GameController.IsGameOver) return;
+        public static List<AsteriodInstance> AsteriodInstances = new List<AsteriodInstance>();
+        public static Action<Asteriod> OnDestroyAsteriod;
+        public static AsteriodsHandler Instance { get; private set; }
 
-        MoveAsteriods();
-    }
+        private static DynamicObjectPool objectPool => PoolManager.AsteriodsPool;
+        private readonly HashSet<AsteriodInstance> destroyedAsteriods = new HashSet<AsteriodInstance>();
 
-    private void MoveAsteriods()
-    {
-        List<PersistentAsteriod> destroyedAsteriods = new List<PersistentAsteriod>();
-
-        foreach (var asteriod in PersistentAsteriods)
+        private void Awake()
         {
-            UnityUtility.LookAt2D(asteriod.Transform, (Vector3)PlayerController.AsteriodInfoPosition, asteriod.LookSpeed);
-            asteriod.Transform.Translate(asteriod.Transform.up * Time.deltaTime * asteriod.MovementSpeed, Space.World);
+            Instance = this;
+            AsteriodInstances = new List<AsteriodInstance>();
+        }
 
-            if(IsCollidingWithAsteriod(asteriod.Transform.localScale.x / 2f, asteriod.Transform.position))
+        void Update()
+        {
+            if (GameController.IsGameOver) return;
+
+            MoveAsteriods();
+        }
+
+        private void MoveAsteriods()
+        {
+            foreach (var asteriodInstance in AsteriodInstances)
             {
-                destroyedAsteriods.Add(asteriod);
+                UnityUtility.LookAt2D(asteriodInstance.Transform, (Vector3)PlayerController.AsteriodInfoPosition, asteriodInstance.LookSpeed);
+                asteriodInstance.Transform.Translate(asteriodInstance.Transform.up * Time.deltaTime * asteriodInstance.MovementSpeed, Space.World);
+
+                if (IsCollidingWithAsteriod(asteriodInstance.Transform.localScale.x / 2f, asteriodInstance.Transform.position))
+                {
+                    destroyedAsteriods.Add(asteriodInstance);
+                }
             }
-        }
 
-        foreach (var asteriod in destroyedAsteriods)
-        {
-            DestroyAsteriod(asteriod, true);
-        }
-
-        destroyedAsteriods.Clear();
-    }
-
-    public static bool IsCollidingWithAsteriod(float distanceThreshold, Vector3 at)
-    {
-        foreach (var asteriod in AsteriodsHandler.PersistentAsteriods)
-        {
-            if (asteriod.Transform.position == at) continue;
-
-            float distance = Vector2.Distance(asteriod.Transform.position, at) - (asteriod.Transform.localScale.x / 2f);
-
-            if (distance < distanceThreshold)
+            foreach (var asteriod in destroyedAsteriods)
             {
-                return true;
+                DestroyAsteriod(asteriod, true);
             }
+
+            destroyedAsteriods.Clear();
         }
-        return false;
-    }
-    public static bool IsCollidingWithAsteriod(float distanceThreshold, Vector3 at, out PersistentAsteriod persistentAsteriod)
-    {
-        persistentAsteriod = null;
 
-        foreach (var asteriod in AsteriodsHandler.PersistentAsteriods)
+        public static bool IsCollidingWithAsteriod(float distanceThreshold, Vector3 at)
         {
-            if (asteriod.Transform.position == at) continue;
-
-            float distance = Vector2.Distance(asteriod.Transform.position, at) - (asteriod.Transform.localScale.x / 2f);
-
-            if (distance < distanceThreshold)
+            foreach (var asteriodInstance in AsteriodInstances)
             {
-                persistentAsteriod = asteriod;
-                return true;
+                if (asteriodInstance.Transform.position == at) continue;
+
+                float distance = Vector2.Distance(asteriodInstance.Transform.position, at) - (asteriodInstance.Transform.localScale.x / 2f);
+
+                if (distance < distanceThreshold)
+                {
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
-    }
-
-    public void DestroyAsteriod(PersistentAsteriod persistentAsteriod, bool fromLaser = true)
-    {
-        if (fromLaser)
+        public static bool IsCollidingWithAsteriod(float distanceThreshold, Vector3 at, out AsteriodInstance asteriodInstance)
         {
-            GameObject effect = Instantiate(asteriodExplosion, persistentAsteriod.Transform.position, Quaternion.Euler(0, 0, 0));
-            Destroy(effect, 1f);
+            asteriodInstance = null;
+
+            foreach (var asteriod in AsteriodInstances)
+            {
+                if (asteriod.Transform.position == at) continue;
+
+                float distance = Vector2.Distance(asteriod.Transform.position, at) - (asteriod.Transform.localScale.x / 2f);
+
+                if (distance < distanceThreshold)
+                {
+                    asteriodInstance = asteriod;
+                    return true;
+                }
+            }
+            return false;
         }
 
-        OnDestroyAsteriod?.Invoke(persistentAsteriod.Asteriod);
-        objectPool.Release(persistentAsteriod.Asteriod.GameObject, persistentAsteriod.Transform.gameObject);
-        PersistentAsteriods.Remove(persistentAsteriod);
-    }
+        public void DestroyAsteriod(AsteriodInstance asteriodInstance, bool fromLaser = true)
+        {
+            if (fromLaser)
+            {
+                GameObject explosionEffect = Instantiate(asteriodExplosion, asteriodInstance.Transform.position, Quaternion.Euler(0, 0, 0));
+                Destroy(explosionEffect, 1f);
+            }
 
-    public static void SpawnAsteriod(Asteriod asteriod,Vector2 at)
-    {
-        Transform tr = Instance.objectPool.Get(asteriod.GameObject, at, Quaternion.Euler(0, 0, 0)).transform;
-        tr.localScale = Vector3.one * asteriod.ScaleMultiplier;
-        PersistentAsteriods.Add(new PersistentAsteriod(asteriod,tr, asteriod.MovementSpeed, asteriod.RotationSpeed));
+            OnDestroyAsteriod?.Invoke(asteriodInstance.Asteriod);
+            objectPool.Release(asteriodInstance.Asteriod.GameObject, asteriodInstance.Transform.gameObject);
+            AsteriodInstances.Remove(asteriodInstance);
+        }
+
+        public static void SpawnAsteriod(Asteriod asteriod, Vector2 at)
+        {
+            Transform tr = objectPool.Get(asteriod.GameObject, at, Quaternion.Euler(0, 0, 0)).transform;
+            tr.localScale = Vector3.one * asteriod.ScaleMultiplier;
+            AsteriodInstances.Add(new AsteriodInstance(asteriod, tr, asteriod.MovementSpeed, asteriod.RotationSpeed));
+        }
     }
 }
+

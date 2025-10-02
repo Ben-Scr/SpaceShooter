@@ -1,85 +1,93 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class DynamicObjectPool
+namespace SpaceShooter
 {
-    private Dictionary<GameObject, Stack<GameObject>> pools = new();
-
-    public int Count(GameObject prefab)
+    public class DynamicObjectPool
     {
-        try
-        {
-            return pools[prefab].Count;
-        }
-        catch { return 0; }
-    }
+        private Dictionary<GameObject, Stack<GameObject>> pools = new();
 
-    public void PreWarm(GameObject prefab, int count)
-    {
-        if (!pools.TryGetValue(prefab, out var stack))
+        public int Count(GameObject prefab)
         {
-            stack = new Stack<GameObject>(count);
-            pools[prefab] = stack;
+            try
+            {
+                return pools[prefab].Count;
+            }
+            catch { return 0; }
         }
 
-        for (int i = 0; i < count; i++)
+        public void PreWarm(GameObject prefab, int count)
         {
-            var go = Object.Instantiate(prefab);
-            go.SetActive(false);
-            stack.Push(go);
-        }
-    }
- 
+            if (!pools.TryGetValue(prefab, out var stack))
+            {
+                stack = new Stack<GameObject>(count);
+                pools[prefab] = stack;
+            }
 
-    public GameObject Get(GameObject prefab, Vector3 pos, Quaternion rot)
-    {
-        if (pools.TryGetValue(prefab, out var stack) && stack.Count > 0)
-        {
-            var obj = stack.Pop();
-            obj.transform.SetPositionAndRotation(pos, rot);
-            obj.SetActive(true);
-            return obj;
-        }
-        return Object.Instantiate(prefab, pos, rot);
-    }
-
-    public GameObject Get(GameObject prefab, Transform parent, bool worldPositionStays = true)
-    {
-        if (pools.TryGetValue(prefab, out var stack) && stack.Count > 0)
-        {
-            var obj = stack.Pop();
-            obj.transform.SetParent(parent, worldPositionStays);
-            obj.SetActive(true);
-            return obj;
+            for (int i = 0; i < count; i++)
+            {
+                var go = Object.Instantiate(prefab);
+                go.SetActive(false);
+                stack.Push(go);
+            }
         }
 
-        return Object.Instantiate(prefab, parent);
-    }
 
-    public GameObject Get(GameObject prefab, RectTransform rect, Transform parent)
-    {
-        if (pools.TryGetValue(prefab, out var stack) && stack.Count > 0)
+        public GameObject Get(GameObject prefab, Vector3 pos, Quaternion rot)
         {
-            var obj = stack.Pop();
-            obj.transform.SetParent(parent);
-            obj.SetActive(true);
-            return obj;
+            if (pools.TryGetValue(prefab, out var stack) && stack.Count > 0)
+            {
+                var obj = stack.Pop();
+                obj.transform.SetPositionAndRotation(pos, rot);
+                obj.SetActive(true);
+                return obj;
+            }
+            return Object.Instantiate(prefab, pos, rot);
+        }
+        public GameObject Get(GameObject prefab, Transform parent, bool worldPositionStays = true)
+        {
+            if (pools.TryGetValue(prefab, out var stack) && stack.Count > 0)
+            {
+                var obj = stack.Pop();
+                obj.transform.SetParent(parent, worldPositionStays);
+                obj.SetActive(true);
+                return obj;
+            }
+
+            return Object.Instantiate(prefab, parent);
+        }
+        public GameObject Get(GameObject prefab, RectTransform rect, Transform parent)
+        {
+            if (pools.TryGetValue(prefab, out var stack) && stack.Count > 0)
+            {
+                var obj = stack.Pop();
+                obj.transform.SetParent(parent);
+                obj.SetActive(true);
+                return obj;
+            }
+
+            var newObj = Object.Instantiate(prefab, rect);
+            newObj.transform.SetParent(parent, true);
+            return newObj;
         }
 
-        var newObj = Object.Instantiate(prefab, rect);
-        newObj.transform.SetParent(parent, true);
-        return newObj;
-    }
-
-    public void Release(GameObject prefab, GameObject obj)
-    {
-        obj.SetActive(false);
-        if (!pools.TryGetValue(prefab, out var stack))
+        public void Release(GameObject prefab, GameObject obj)
         {
-            stack = new Stack<GameObject>();
-            pools[prefab] = stack;
+            obj.SetActive(false);
+            if (!pools.TryGetValue(prefab, out var stack))
+            {
+                stack = new Stack<GameObject>();
+                pools[prefab] = stack;
+            }
+            stack.Push(obj);
         }
-        stack.Push(obj);
+
+        public IEnumerator Release(GameObject prefab, GameObject obj, float t)
+        {
+            yield return new WaitForSeconds(t);
+            Release(prefab, obj);
+        }
     }
 }

@@ -1,16 +1,18 @@
 ﻿using System;
 
 
-[Serializable]
-public struct Range
+namespace SpaceShooter
 {
-    public float Min;
-    public float Max;
-
-    public Range(float min, float max)
+    [Serializable]
+    public struct Range
     {
-        Min = min;
-        Max = max;
+        public float Min;
+        public float Max;
+
+        public Range(float min, float max)
+        {
+            Min = min;
+            Max = max;
+        }
     }
 }
-

@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Assets.Scripts.General
+namespace SpaceShooter
 {
     [Serializable]
     public struct Bounds

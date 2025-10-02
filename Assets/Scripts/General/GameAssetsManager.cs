@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 
-
-public class GameAssetsManager : MonoBehaviour
+namespace SpaceShooter
 {
-    [SerializeField] private List<Weapon> weaponsContainer;
-    public static List<Weapon> WeaponsContainer => Instance.weaponsContainer;
-    public static GameAssetsManager Instance { get; private set; }
-    public Assets.Scripts.General.Bounds MapBounds;
-
-    private void Awake()
+    public class GameAssetsManager : MonoBehaviour
     {
-        Instance = this;
+        public static GameAssetsManager Instance { get; private set; }
+        public Bounds MapBounds;
+
+        private void Awake()
+        {
+            Instance = this;
+        }
     }
 }
