@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public enum ConntrolMode
 {
@@ -22,6 +23,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float spreadAngle = 60f;
     [SerializeField] private List<Weapon> initWeapons;
     private List<PersistentWeapon> persistentWeapons = new List<PersistentWeapon>();
+    [SerializeField] private Slider[] weaponSliders;
+    [SerializeField] private Color weaponAvailableColor, weaponUnavailableColor;
+
 
     [Space(5)]
     [Header("Other")]
@@ -43,6 +47,13 @@ public class PlayerController : MonoBehaviour
     {
         Instance = this;
 
+        int i = 0;
+        foreach (var weaponSlider in weaponSliders)
+        {
+            weaponSlider.maxValue = initWeapons[i++].CallInterval;
+            weaponSlider.value = weaponSlider.maxValue;
+        }
+
         foreach (var weapon in initWeapons)
         {
             if (weapon.Auto)
@@ -61,6 +72,14 @@ public class PlayerController : MonoBehaviour
         if (GameController.IsGameOver) return;
 
         Movement();
+
+        int i = 0;
+        foreach (var weaponSlider in weaponSliders)
+        {
+            weaponSlider.value = persistentWeapons[i++].LastCallTimeCounter;
+            bool isMax = weaponSlider.value >= weaponSlider.maxValue;
+            weaponSlider.fillRect.GetComponent<Image>().color = isMax ? weaponAvailableColor : weaponUnavailableColor;
+        }
 
         if (Input.GetKeyDown(KeyCode.F2))
         {
@@ -100,6 +119,11 @@ public class PlayerController : MonoBehaviour
             UnityUtility.LookAt2D(transform, mousePosition, lookAtSpeed * Mathf.Clamp01(dst));
         }
 
+        if (!GameAssetsManager.Instance.MapBounds.Contains(transform.position))
+        {
+            transform.rotation = Quaternion.Euler(0, 0, transform.localEulerAngles.z + 180f);
+        }
+
         if (Input.GetKey(KeyCode.LeftShift)) input *= 2;
 
         transform.Translate(transform.up * input, Space.World);
@@ -116,21 +140,40 @@ public class PlayerController : MonoBehaviour
         {
             Weapon weapon = persistentWeapon.Weapon;
 
-            if (!weapon.Auto)
+            if (persistentWeapon.CanCall() && (Input.GetKeyDown(weapon.CallKey) || (weapon.Auto)))
             {
-                if (Input.GetKeyDown(weapon.CallKey))
+                persistentWeapon.LastCallTimeCounter = 0;
+
+                if (weapon is Bullet bullet)
                 {
-                    if (weapon is Bullet bullet)
+                    if (bullet.EmitCount == 1)
                     {
                         BulletHandler.SpawnBullet(bullet, (Vector2)transform.position, transform.rotation);
                     }
-                }
-            }
-            else if (persistentWeapon is PersistentAutomaticWeapon automaticWeapon)
-            {
-                if (weapon is Bullet bullet && automaticWeapon.CanCall())
-                {
-                    BulletHandler.SpawnBullet(bullet, (Vector2)transform.position, transform.rotation);
+                    else
+                    {
+                        if (bullet.SpreadType == SpreadType.Frustum)
+                        {
+                            float startAngle = -spreadAngle / 2f;
+                            float angleStep = spreadAngle / (bullet.EmitCount - 1);
+
+                            for (int i = 0; i < bullet.EmitCount; i++)
+                            {
+                                float currentAngle = startAngle + angleStep * i;
+                                Quaternion rot = transform.rotation * Quaternion.Euler(0, 0, currentAngle);
+                                BulletHandler.SpawnBullet(bullet, (Vector2)transform.position, rot);
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < bullet.EmitCount; i++)
+                            {
+                                float angle = i * (360f / bullet.EmitCount);
+                                Quaternion rot = Quaternion.Euler(0, 0, angle);
+                                BulletHandler.SpawnBullet(bullet, (Vector2)transform.position, rot);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -149,9 +192,19 @@ public class PlayerController : MonoBehaviour
 public class PersistentWeapon
 {
     public Weapon Weapon;
+    public float LastCallTimeCounter;
+
     public PersistentWeapon(Weapon weapon)
     {
         Weapon = weapon;
+        LastCallTimeCounter = weapon.CallInterval;
+    }
+
+    public bool CanCall()
+    {
+        LastCallTimeCounter += Time.deltaTime;
+        bool canCall = LastCallTimeCounter >= Weapon.CallInterval;
+        return canCall;
     }
 }
 
@@ -159,27 +212,13 @@ public class PersistentAutomaticWeapon : PersistentWeapon
 {
     public PersistentAutomaticWeapon(Weapon weapon) : base(weapon)
     {
-        LastCallTimeCounter = weapon.CallInterval;
-    }
 
-    public float LastCallTimeCounter;
-    public bool CanCall()
-    {
-        LastCallTimeCounter += Time.deltaTime;
-        bool canCall =  LastCallTimeCounter >= Weapon.CallInterval;
-        if (canCall) LastCallTimeCounter = 0;
-        return canCall;
     }
 }
 
 
 //// Circular shooting
-//for (int i = 0; i < shootAmount; i++)
-//{
-//    float angle = i * (360f / shootAmount);
-//    Quaternion rot = Quaternion.Euler(0, 0, angle);
-//    BulletHandler.SpawnBullet((Vector2)transform.position, rot);
-//}
+
 
 
 
@@ -189,13 +228,5 @@ public class PersistentAutomaticWeapon : PersistentWeapon
 //}
 //else
 //{
-//    float startAngle = -spreadAngle / 2f;
-//    float angleStep = spreadAngle / (shootAmount - 1);
-
-//    for (int i = 0; i < shootAmount; i++)
-//    {
-//        float currentAngle = startAngle + angleStep * i;
-//        Quaternion rot = transform.rotation * Quaternion.Euler(0, 0, currentAngle);
-//        BulletHandler.SpawnBullet(bullet, (Vector2)transform.position, rot);
-//    }
+//    
 //}

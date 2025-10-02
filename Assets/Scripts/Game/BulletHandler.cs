@@ -27,38 +27,29 @@ public class BulletHandler : MonoBehaviour
         MoveBullets();
     }
 
+    HashSet<PersistentBullet> bulletsToDestroy = new HashSet<PersistentBullet>();
+
     public void MoveBullets()
     {
-        List<PersistentBullet> bulletsToDestroy = new List<PersistentBullet>();
-
         foreach (var persistentBullet in persistentBullets)
         {
             if (persistentBullet.Bullet.IsHauning)
             {
-                if (persistentBullet.HasTarget())
-                {
-                    UnityUtility.LookAt2D(persistentBullet.Transform, persistentBullet.Target.position, persistentBullet.Bullet.RotationSpeed);
-                }
-                else
-                {
-                    persistentBullet.TryFindTarget();
-                }
+                HauntingBulletMovement(persistentBullet);
+            }
+
+            if (persistentBullet.Bullet.Bounceable)
+            {
+                // Implemented in future
             }
 
             persistentBullet.Transform.Translate(persistentBullet.Transform.up * Time.deltaTime * persistentBullet.Bullet.Speed, Space.World);
 
-            if (Vector2.Distance(persistentBullet.Transform.position, PlayerController.Position) > distanceForDeath)
-            {
-                bulletsToDestroy.Add(persistentBullet);
-            }
 
-            PersistentAsteriod collidedAsteriod = CollidesWith(persistentBullet.Transform);
 
-            if (collidedAsteriod != null)
-            {
-                bulletsToDestroy.Add(persistentBullet);
-                collidedAsteriod.OnHit();
-            }
+            DeathDetection(persistentBullet);
+
+            AsteriodHitDetection(persistentBullet);
         }
 
         foreach (var persistentBullet in bulletsToDestroy)
@@ -67,6 +58,39 @@ public class BulletHandler : MonoBehaviour
         }
 
         bulletsToDestroy.Clear();
+    }
+
+    private void HauntingBulletMovement(PersistentBullet persistentBullet)
+    {
+        if (persistentBullet.HasTarget())
+        {
+            UnityUtility.LookAt2D(persistentBullet.Transform, persistentBullet.Target.position, persistentBullet.Bullet.RotationSpeed);
+        }
+        else
+        {
+            persistentBullet.TryFindTarget();
+        }
+    }
+
+    private void DeathDetection(PersistentBullet persistentBullet)
+    {
+        bool outOfRange = Vector2.Distance(persistentBullet.Transform.position, PlayerController.Position) > distanceForDeath;
+
+        if (outOfRange)
+        {
+            bulletsToDestroy.Add(persistentBullet);
+        }
+    }
+
+    private void AsteriodHitDetection(PersistentBullet persistentBullet)
+    {
+        PersistentAsteriod collidedAsteriod = CollidesWith(persistentBullet.Transform);
+
+        if (collidedAsteriod != null)
+        {
+            bulletsToDestroy.Add(persistentBullet);
+            collidedAsteriod.OnHit();
+        }
     }
 
     private PersistentAsteriod CollidesWith(Transform bulletTr)
@@ -87,7 +111,7 @@ public class PersistentBullet
     public Transform Transform;
     public Bullet Bullet;
     public Transform Target;
-
+    public int Bounced = 0;
     public PersistentBullet(Bullet bullet, Transform transform)
     {
         Transform = transform;

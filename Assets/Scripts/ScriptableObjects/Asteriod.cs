@@ -8,4 +8,5 @@ public class Asteriod : ScriptableObject
     public float MovementSpeed = 5f;
     public float RotationSpeed = 1;
     public float ScaleMultiplier = 1f;
+    public int ScoreValue = 10;
 }

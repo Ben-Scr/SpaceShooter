@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public class AsteriodsHandler : MonoBehaviour
 {
@@ -8,6 +9,8 @@ public class AsteriodsHandler : MonoBehaviour
 
     public static AsteriodsHandler Instance;
     [SerializeField] private GameObject asteriodExplosion;
+
+    public static Action<Asteriod> OnDestroyAsteriod;
 
     private void Awake()
     {
@@ -87,6 +90,7 @@ public class AsteriodsHandler : MonoBehaviour
             Destroy(effect, 1f);
         }
 
+        OnDestroyAsteriod?.Invoke(persistentAsteriod.Asteriod);
         objectPool.Release(persistentAsteriod.Asteriod.GameObject, persistentAsteriod.Transform.gameObject);
         PersistentAsteriods.Remove(persistentAsteriod);
     }

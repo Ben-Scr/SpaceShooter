@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 // A Generic wave spawner
@@ -23,6 +24,7 @@ public class WaveSpawner : MonoBehaviour
     [SerializeField] private float spawnDistance = 10f;
     [SerializeField] private Range spawnRangeY = new Range(-5f, 5f);
     [SerializeField] private float wavePauseTime = 2f;
+    [SerializeField] private Slider waveSlider;
     private int waveValueMultiplier => waveValueMultipliers[(int)difficulty];
     private int currentWave;
     private int currentWaveAmount;
@@ -30,6 +32,8 @@ public class WaveSpawner : MonoBehaviour
 
     private bool isSpawning;
     private float spawnTimer;
+
+    public static Action<int> OnNextWave;
 
     private void Awake()
     {
@@ -40,6 +44,22 @@ public class WaveSpawner : MonoBehaviour
                 cheapestWaveCost = entity.WaveCost;
             }
         }
+    }
+
+
+    private void OnEnable()
+    {
+        AsteriodsHandler.OnDestroyAsteriod += OnDestroyAsteriod;
+    }
+
+    private void OnDisable()
+    {
+        AsteriodsHandler.OnDestroyAsteriod -= OnDestroyAsteriod;
+    }
+
+    private void OnDestroyAsteriod(Asteriod asteriod)
+    {
+        waveSlider.value--;
     }
 
     private void Update()
@@ -75,7 +95,9 @@ public class WaveSpawner : MonoBehaviour
         if(AsteriodsHandler.PersistentAsteriods.Count == 0 && asteriodsToSpawn.Count == 0)
         {
             NextWave();
-            Debug.Log("Next Wave!");
+            waveSlider.maxValue = asteriodsToSpawn.Count;
+            waveSlider.value = waveSlider.maxValue;
+            OnNextWave?.Invoke(currentWave);
         }
     }
 
@@ -114,7 +136,7 @@ public class WaveSpawner : MonoBehaviour
     public Vector2 GetRandomWaveEntityPos()
     {
         bool isLeft = UnityEngine.Random.Range(0, 2) == 0;
-        return new Vector2(isLeft ? -spawnDistance : spawnDistance, UnityEngine.Random.Range(spawnRangeY.Min, spawnRangeY.Max)) + PlayerController.Position;
+        return new Vector2(isLeft ? -spawnDistance : spawnDistance, UnityEngine.Random.Range(spawnRangeY.Min, spawnRangeY.Max)) + Camera.main?.transform.position ?? Vector2.zero;
     }
 }
 
