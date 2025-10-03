@@ -85,7 +85,7 @@ namespace SpaceShooter
 
         private void HitAsteriodDetection(BulletInstance bulletInstance)
         {
-            AsteriodInstance collidedAsteriod = CollidesWith(bulletInstance.Transform);
+            AsteriodInstance collidedAsteriod = CollidesWith(bulletInstance.Transform, bulletInstance.Bullet.HitDistanceThreshold);
 
             if (collidedAsteriod != null)
             {

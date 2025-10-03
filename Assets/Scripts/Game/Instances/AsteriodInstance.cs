@@ -36,14 +36,8 @@ namespace SpaceShooter
             {
                 Color defaultColor = SpriteRenderer.color;
                 SpriteRenderer.color = Color.red;
-                AsteriodsHandler.Instance.StartCoroutine(SetColorDelayed(defaultColor, 0.05f));
+                AsteriodsHandler.Instance.StartCoroutine(UnityUtility.SetColorDelayed(SpriteRenderer, defaultColor, 0.05f));
             }
-        }
-
-        public IEnumerator SetColorDelayed(Color color, float delay)
-        {
-            yield return new WaitForSeconds(delay);
-            SpriteRenderer.color = color;
         }
     }
 }

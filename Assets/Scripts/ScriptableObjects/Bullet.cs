@@ -13,6 +13,7 @@ namespace SpaceShooter
         public bool IsHauning = false;
         public bool Bounceable = false;
         public int MaxBounces = 3;
+        public float HitDistanceThreshold;
         public float RotationSpeed = 10f;
         public GameObject HitEffect;
     }

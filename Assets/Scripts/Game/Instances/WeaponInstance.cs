@@ -1,7 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace SpaceShooter
 {
+    [Serializable]
     public class WeaponInstance
     {
         public Weapon Weapon;
