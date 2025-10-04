@@ -1,5 +1,5 @@
 # Space Shooter
-2D Unity Space Shooter - early prototype (5+ hours of development time).
+2D Unity 6000.2.6f Space Shooter - early prototype (5+ hours of development time).
 
 ## Gameplay Screenshots
 <p align="center">
