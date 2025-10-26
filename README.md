@@ -1,17 +1,23 @@
 # Space Shooter
-2D Unity Space Shooter - early prototype (5+ hours of development time).
+2D Unity `6000.2.6f` Space Shooter - early prototype (5+ hours of development time).
 
-## Gameplay Screenshots
+---
+
+## Latest Gameplay Screenshots
 <p align="center">
   <img src="Docs/Screenshot5.png" width="45%" alt="Gameplay Screenshot 1">
   <img src="Docs/Screenshot6.png" width="45%" alt="Gameplay Screenshot 2">
 </p>
+
+---
 
 ## Controls
 - Avoid the asteroids that are flying toward you and shoot them down.
 - **Space** - Shoot a laser which haunts the asteriods.
 - **Q** - Deploys a bomb.
 - **E** - Shoots a circle of lasers around the ship.
+
+---
 
 ## Roughly planned for the future
 - In-game currency
@@ -37,6 +43,8 @@
 - Cleaner event handling
 - Cleaner resource management
 - Audio (SFX, soundtracks)
+
+---
 
 ## Day 1 Gameplay Screenshots
 <p align="center">
