@@ -2,4 +2,3 @@
 * text=auto
 *.shader linguist-vendored
 *.hlsl linguist-vendored
-Packages/** linguist-vendored
